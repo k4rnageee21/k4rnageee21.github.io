@@ -9,6 +9,7 @@ window.addEventListener("DOMContentLoaded", () => {
     let hours = 0, displayHours = "00";
     let minutes = 0, displayMinutes = "00";
     let seconds = 0, displaySeconds = "00";
+    let startData = [0, 0, 0];
     let tick;
     let isTick = false;
 
@@ -17,6 +18,7 @@ window.addEventListener("DOMContentLoaded", () => {
         while (hours < 0) {
             hours = +prompt("Enter hours correctly (>= 0):", 0);
         }
+        startData[0] = hours;
         displayHours = hours < 10 ? "0" + hours : hours;
         units[0].innerHTML = displayHours;
     });
@@ -25,6 +27,7 @@ window.addEventListener("DOMContentLoaded", () => {
         while (minutes < 0 || minutes > 59) {
             minutes = +prompt("Enter minutes correctly (0-59 range):", 0);
         }
+        startData[1] = minutes;
         displayMinutes = minutes < 10 ? "0" + minutes : minutes;
         units[1].innerHTML = displayMinutes;
     });
@@ -33,11 +36,37 @@ window.addEventListener("DOMContentLoaded", () => {
         while (seconds < 0 || seconds > 59) {
             seconds = +prompt("Enter seconds correctly (0-59 range):", 0);
         }
+        startData[2] = seconds;
         displaySeconds = seconds < 10 ? "0" + seconds : seconds;
         units[2].innerHTML = displaySeconds;
     });
 
     startBtn.addEventListener("click", (event) => {
+        startTimer();
+    });
+
+    pauseBtn.addEventListener("click", () => {
+        pauseTimer();
+    });
+
+    resetBtn.addEventListener("click", () => {
+        resetTimer();
+    });
+
+    saveBtn.addEventListener("click", () => {
+        pauseTimer();
+        let str = `You worked ${startData[0] - hours} hours, ${startData[1] - minutes} minutes and ${startData[2] - seconds} seconds out of the planned ${startData[0]} hours, ${startData[1]} minutes and ${startData[2]} seconds. Save result to your profile?`;
+        let choice = confirm(str, false);
+        if (choice) {
+            alert("To save your result you need to log in!");
+        }
+        choice = confirm("Reset timer?", false);
+        if (choice) {
+            resetTimer();
+        }
+    });
+
+    function startTimer() {
         if (!isTick && hours || minutes || seconds) {
             isTick = true;
             tick = setInterval(() => {
@@ -61,7 +90,10 @@ window.addEventListener("DOMContentLoaded", () => {
                         else {
                             clearInterval(tick);
                             isTick = false;
-                            alert("Timer is done");
+                            let choice = confirm("Timer is up! You have worked all the scheduled time. Save result to your profile?", false);
+                            if (choice) {
+                                alert("To save your result you need to log in!");
+                            }
                         }
                     }
                 } else {
@@ -71,16 +103,9 @@ window.addEventListener("DOMContentLoaded", () => {
                 }
             }, 1000);
         }
-    });
+    }
 
-    pauseBtn.addEventListener("click", () => {
-        if (isTick) {
-            isTick = false;
-            clearInterval(tick);
-        }
-    });
-
-    resetBtn.addEventListener("click", () => {
+    function resetTimer() {
         isTick = false;
         clearInterval(tick);
         hours = 0;
@@ -89,9 +114,12 @@ window.addEventListener("DOMContentLoaded", () => {
         units[0].innerHTML = "00";
         units[1].innerHTML = "00";
         units[2].innerHTML = "00";
-    });
+    }
 
-    saveBtn.addEventListener("click", () => {
-
-    });
+    function pauseTimer() {
+        if (isTick) {
+            isTick = false;
+            clearInterval(tick);
+        }
+    }
 });

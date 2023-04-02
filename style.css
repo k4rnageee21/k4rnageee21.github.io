@@ -149,6 +149,16 @@ h1, h2, h3, h4, h5, h6 {font-size: inherit; font-weight: 400; margin: 0;}
     text-align: center;
 }
 /***********************************************************************************************************/
+.main-profile__table th {
+    padding: 20px;
+}
+.main-profile__table td {
+    padding: 20px;
+}
+.main-profile__table ul {
+    padding: 0;
+}
+/***********************************************************************************************************/
 .main-about p {
     font-family: Arial, Helvetica, sans-serif;
     line-height: 1.2;
