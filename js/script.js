@@ -121,6 +121,13 @@ window.addEventListener("DOMContentLoaded", () => {
 		overlay.style.display = "none";
 		consultationModal.style.display = "none";
 		orderModal.style.display = "none";
+
+		let formReq = document.querySelectorAll("._req");
+		
+		for (let i = 0; i < formReq.length; i++) {
+			const input = formReq[i];
+			formRemoveError(input);
+		}
 	}
 
 	consultationsBtn.forEach(item => {
@@ -131,7 +138,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 	ordersBtn.forEach(item => {
 		item.addEventListener("click", (e) => {
-			const itemName = item.parentNode.parentNode.childNodes[1].childNodes[1].childNodes[3].innerHTML;
+			const itemName = item.parentElement.parentElement.children[0].children[0].children[1].innerHTML;
 			showOrderModal(itemName);
 		});
 	});
