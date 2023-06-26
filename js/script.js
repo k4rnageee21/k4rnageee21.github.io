@@ -331,7 +331,8 @@ startBtn.addEventListener("click", startGame);
 function startGame() {
     // початок гри, якщо гравець розставив усі кораблі
     if (ship1.innerHTML === "x0" && ship2.innerHTML === "x0" && ship3.innerHTML === "x0" && ship4.innerHTML === "x0") {
-        console.log("Game started!");
+        alert("Game started!");
+        startBtn.disabled = true;
         for (let i = 0; i < playerBattlegroundCells.length; i++) {
             // прибираємо візуальні ефекти для розміщення на своєму полі
             playerBattlegroundCells[i].removeEventListener("mouseover", cellHover);
@@ -355,7 +356,7 @@ function startGame() {
 
 
     } else {
-        console.log("Place all ships!");
+        alert("Place all ships!");
     }
 }
 
@@ -475,7 +476,6 @@ async function enemyShot() {
     // вимикаємо взаємодію з ворожим полем, поки бот виконує свої алгоритми
     enemyBattleground.querySelector("table").classList.add("enemy-battleground_overlay");
 
-    await delay(MS_DELAY);
     let tmpCell;
     // логіка, якщо поки не влучено в жоден корабель (всі кораблі цілі, або потоплені)
     if (!enemyShotStatus) {
@@ -485,28 +485,29 @@ async function enemyShot() {
         }
 
         if (player.battleground[x][y].status === "ship") {
+            await delay(MS_DELAY);
             [startX, startY] = [x, y];
             player.battleground[x][y].status = "damaged";
             tmpCell = document.querySelector(`[data-cell=${String.fromCharCode("a".codePointAt(0) + y) + String(x + 1)}]`);
             tmpCell.classList.add("_damaged");
             enemyShotStatus = true;
             if (!isPlayerShipSunk(x, y)) {
-                if (x - 1 >= 0) {
+                if (x - 1 >= 0 && player.battleground[x - 1][y].status != "crossed") {
                     adjacentCells.push([x - 1, y]);
                 }
-                if (x + 1 < 10) {
+                if (x + 1 < 10 && player.battleground[x + 1][y].status != "crossed") {
                     adjacentCells.push([x + 1, y]);
                 }
-                if (y - 1 >= 0) {
+                if (y - 1 >= 0 && player.battleground[x][y - 1].status != "crossed") {
                     adjacentCells.push([x, y - 1]);
                 }
-                if (y + 1 < 10) {
+                if (y + 1 < 10 && player.battleground[x][y + 1].status != "crossed") {
                     adjacentCells.push([x, y + 1]);
                 }
 
                 let random = Math.floor(Math.random() * adjacentCells.length);
                 let [newX, newY] = adjacentCells[random];
-
+                
                 if (player.battleground[newX][newY].status === "ship") {
                     // якщо вгадали з сусідньою стороною, то чистимо стек, він нам не потрібен вже
                     adjacentCells = [];
@@ -514,8 +515,8 @@ async function enemyShot() {
                     let diffY = newY - y;
                     currentDiffX = diffX;
                     currentDiffY = diffY;
-                    // йдемо по циклу в одну сторону, поки зустрічаються клітинки з кораблем
-                    while (player.battleground[newX][newY].status === "ship") {
+                    // йдемо по циклу в одну сторону, поки зустрічаються клітинки з кораблем або не виходимо за рамки
+                    while (newX >= 0 && newX < 10 && newY >= 0 && newY < 10 && player.battleground[newX][newY].status === "ship") {
                         await delay(MS_DELAY);
                         player.battleground[newX][newY].status = "damaged";
                         tmpCell = document.querySelector(`[data-cell=${String.fromCharCode("a".codePointAt(0) + newY) + String(newX + 1)}]`);
@@ -536,14 +537,17 @@ async function enemyShot() {
                             }
                         }
                     }
-                    if (player.battleground[newX][newY].status === "free") {
+                    if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10 || player.battleground[newX][newY].status === "crossed") {
+                        enemyShot();
+                    }
+                    else if (player.battleground[newX][newY].status === "free") {
                         await delay(MS_DELAY);
                         player.battleground[newX][newY].status = "crossed";
                         tmpCell = document.querySelector(`[data-cell=${String.fromCharCode("a".codePointAt(0) + newY) + String(newX + 1)}]`);
                         tmpCell.classList.add("_crossed");
                         // вмикаємо взаємодію з ворожим полем
                         enemyBattleground.querySelector("table").classList.remove("enemy-battleground_overlay");
-                    }
+                    }      
                 } else {
                     await delay(MS_DELAY);
                     // якщо не вгадали з сусідньою стороною, то вирізаємо зі стеку та даємо відповідний статус клітинці
@@ -567,6 +571,7 @@ async function enemyShot() {
                 }
             }
         } else {
+            await delay(MS_DELAY);
             player.battleground[x][y].status = "crossed";
             tmpCell = document.querySelector(`[data-cell=${String.fromCharCode("a".codePointAt(0) + y) + String(x + 1)}]`);
             tmpCell.classList.add("_crossed");
@@ -612,8 +617,8 @@ async function enemyShot() {
                 let diffY = newY - startY;
                 currentDiffX = diffX;
                 currentDiffY = diffY;
-                // йдемо по циклу в одну сторону, поки зустрічаються клітинки з кораблем
-                while (player.battleground[newX][newY].status === "ship") {
+                // йдемо по циклу в одну сторону, поки зустрічаються клітинки з кораблем або не вийдемо за рамки
+                while (newX >= 0 && newX < 10 && newY >= 0 && newY < 10 && player.battleground[newX][newY].status === "ship") {
                     await delay(MS_DELAY);
                     player.battleground[newX][newY].status = "damaged";
                     tmpCell = document.querySelector(`[data-cell=${String.fromCharCode("a".codePointAt(0) + newY) + String(newX + 1)}]`);
@@ -634,7 +639,10 @@ async function enemyShot() {
                         }
                     }
                 }
-                if (player.battleground[newX][newY].status === "free") {
+                if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10 || player.battleground[newX][newY].status === "crossed") {
+                    enemyShot();
+                }
+                else if (player.battleground[newX][newY].status === "free") {
                     await delay(MS_DELAY);
                     player.battleground[newX][newY].status = "crossed";
                     tmpCell = document.querySelector(`[data-cell=${String.fromCharCode("a".codePointAt(0) + newY) + String(newX + 1)}]`);
@@ -643,6 +651,7 @@ async function enemyShot() {
                     enemyBattleground.querySelector("table").classList.remove("enemy-battleground_overlay");
                 }
             } else {
+                await delay(MS_DELAY);
                 // якщо не вгадали з сусідньою стороною, то вирізаємо зі стеку та даємо відповідний статус клітинці
                 adjacentCells.splice(random, 1);
                 player.battleground[newX][newY].status = "crossed";
@@ -717,6 +726,11 @@ function processSunk(lastSunkCoordinates, side) {
                 tmpCell = document.querySelectorAll(`[data-cell=${String.fromCharCode("a".codePointAt(0) + j) + String(tmpShip[0][0])}]`)[sideIndex];
                 if (tmpCell.classList.length === 0) {
                     tmpCell.classList.add("_crossed");
+                    if (side === enemy) {
+                        tmpCell.removeEventListener("click", playerShot);
+                        tmpCell.removeEventListener("mouseover", cellHover);
+                        tmpCell.removeEventListener("mouseout", cellUnhover);
+                    }
                 }
             }
         }
@@ -730,6 +744,11 @@ function processSunk(lastSunkCoordinates, side) {
                 tmpCell = document.querySelectorAll(`[data-cell=${String.fromCharCode("a".codePointAt(0) + tmpShip[tmpShip.length - 1][1] + 1) + String(i + 1)}]`)[sideIndex];
                 if (tmpCell.classList.length === 0) {
                     tmpCell.classList.add("_crossed");
+                    if (side === enemy) {
+                        tmpCell.removeEventListener("click", playerShot);
+                        tmpCell.removeEventListener("mouseover", cellHover);
+                        tmpCell.removeEventListener("mouseout", cellUnhover);
+                    }
                 }
             }
             
@@ -744,6 +763,11 @@ function processSunk(lastSunkCoordinates, side) {
                 tmpCell = document.querySelectorAll(`[data-cell=${String.fromCharCode("a".codePointAt(0) + j) + String(tmpShip[tmpShip.length - 1][0] + 2)}]`)[sideIndex];
                 if (tmpCell.classList.length === 0) {
                     tmpCell.classList.add("_crossed");
+                    if (side === enemy) {
+                        tmpCell.removeEventListener("click", playerShot);
+                        tmpCell.removeEventListener("mouseover", cellHover);
+                        tmpCell.removeEventListener("mouseout", cellUnhover);
+                    }
                 }
             }
         }
@@ -757,6 +781,11 @@ function processSunk(lastSunkCoordinates, side) {
                 tmpCell = document.querySelectorAll(`[data-cell=${String.fromCharCode("a".codePointAt(0) + tmpShip[0][1] - 1) + String(i + 1)}]`)[sideIndex];
                 if (tmpCell.classList.length === 0) {
                     tmpCell.classList.add("_crossed");
+                    if (side === enemy) {
+                        tmpCell.removeEventListener("click", playerShot);
+                        tmpCell.removeEventListener("mouseover", cellHover);
+                        tmpCell.removeEventListener("mouseout", cellUnhover);
+                    }
                 }
             }
         }
